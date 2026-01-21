@@ -1,0 +1,46 @@
+name: Deploy Frontend to GitHub Pages
+
+on:
+  push:
+    branches: [ main, master ]
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  # Build job
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        
+      - name: Copy frontend files
+        run: |
+          mkdir -p _site
+          cp -r daily_briefing_generator/web_interface/frontend/* _site/
+          cp .nojekyll _site/
+          ls -la _site/
+          
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+
+  # Deployment job
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
